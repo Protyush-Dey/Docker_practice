@@ -1,0 +1,45 @@
+services:
+  backend:
+    build: .
+    container_name: Docker_express
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: ${PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SERVER: database
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+    networks:
+      - docker_bridge
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: mysql:8.4
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - sqlserver-data:/var/lib/mysql
+    networks:
+      - docker_bridge
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sqlserver-data:
+
+networks:
+  docker_bridge:
+    driver: bridge
